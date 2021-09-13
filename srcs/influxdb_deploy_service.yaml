@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: influxdb-service
+spec:
+  selector:
+    app: influxdb
+  ports:
+    - port: 8086
+      targetPort: influ-cont-port
+      protocol: TCP
+      name: influxdb-service-port
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: influxdb-deploy
+  labels:
+    app: influxdb
+spec:
+  selector:
+    matchLabels:
+      app: influxdb
+  template:
+    metadata:
+      labels:
+        app: influxdb
+    spec:
+      containers:
+      - name: influxdb
+        image: image_influxdb
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8086
+          name: influ-cont-port
+        volumeMounts:
+        - name: influxdb-volume
+          mountPath: /var/lib/influxdb
+      volumes:
+      - name: influxdb-volume
+        persistentVolumeClaim:
+          claimName: influxdb-volume-claim
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: influxdb-volume-claim
+  labels:
+    app: influxdb
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+
+
+

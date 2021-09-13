@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: phpma-service
+  annotations:
+    metallb.universe.tf/allow-shared-ip: "sharing key"
+spec:
+  selector:
+    app: phpma
+  type: LoadBalancer
+  loadBalancerIP: 192.168.99.182
+  ports:
+  - port: 5000
+    name: phpma-svc-port
+    targetPort: phpma-cont-port
+    protocol: TCP
+    nodePort: 5000
+
+--- 
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phpmyadmin-deploy
+  labels:
+    app: phpma
+spec:
+  selector:
+    matchLabels:
+      app: phpma
+  template:
+    metadata:
+      labels:
+        app: phpma
+    spec:
+      containers:
+      - name: phpmyadmin
+        image: image_phpma
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+          name: phpma-cont-port
